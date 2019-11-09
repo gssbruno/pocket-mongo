@@ -1,0 +1,2 @@
+bson
+pymongo==3.9.0

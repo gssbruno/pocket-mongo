@@ -1,5 +1,5 @@
-from typing import Any
-from pymongo import MongoClient
+from typing import Any, List
+from pymongo import MongoClient, IndexModel
 from pymongo.collection import Collection
 from pymongo.database import Database
 from bson import ObjectId
@@ -12,42 +12,38 @@ __all__ = [
 
 
 class Meta(type):
-    colecao_nome = None
+    collection_name = None
+    indexes: List[IndexModel] = None
     db: Database
 
     def __init__(cls, *args, **kwargs):
-        cls.validar_collection(args)
-        cls._colecao: Collection = None
+        cls.validate_collection(args)
+        cls._collection: Collection = None
 
         super().__init__(*args, **kwargs)
 
     @property
     def collection(cls) -> Collection:
-        if not cls._colecao:
-            cls.criar_colecao()
+        if not cls._collection:
+            cls.create_collection()
 
-        return cls._colecao
+        return cls._collection
 
-    def validar_collection(cls, args: tuple) -> None:
-        if args[0] != 'colecaoBase' and not args[2].get('colecao_nome'):
+    def validate_collection(cls, args: tuple) -> None:
+        if args[0] != 'colecaoBase' and not args[2].get('collection_name'):
             raise ValueError(
-                'Classe %s precisa definir uma <colecao_nome>' % args[2]
+                'Class %s must define a <collection_name>' % args[2]
             )
 
-    def criar_colecao(cls) -> Collection:
-        """
-        Retorna a instância da coleção referente à classe definida.
-
-        :return:
-        """
+    def create_collection(cls) -> Collection:
         cls.validate_settings()
         cls.db = MongoClient(Settings.address)[Settings.database]
-        cls._colecao = cls.db[cls.colecao_nome]
+        cls._collection = cls.db[cls.collection_name]
         cls.create_indexes()
 
     def create_indexes(cls) -> None:
-        if hasattr(cls, 'indices'):
-            cls.collection.create_indexes(cls.indices)
+        if cls.indexes is not None:
+            cls.collection.create_indexes(cls.indexes)
 
     def validate_settings(cls):
         if not Settings.address:
@@ -62,14 +58,14 @@ class Meta(type):
 
 
 class BaseCollection(metaclass=Meta):
-    colecao_nome = 'colecaoBase'
+    collection_name = 'colecaoBase'
 
     @classmethod
     def by_id(cls, _id: Any) -> dict:
         """
-        Método helper para retornar um documento a partir de sua _id.
+        Helper method that returns a document by its _id.
 
-        :param _id: _id do documento no MongoDB
+        :param _id: Document ObjectId, or its string value
         :return:
         """
         if isinstance(_id, str):
@@ -79,6 +75,12 @@ class BaseCollection(metaclass=Meta):
 
     @classmethod
     def delete_by_id(cls, _id: Any) -> int:
+        """
+        Helper method that deletes a document by its _id.
+
+        :param _id: Document ObjectId, or its string value.
+        :return:
+        """
         if isinstance(_id, str):
             _id = ObjectId(_id)
 
