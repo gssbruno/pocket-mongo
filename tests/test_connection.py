@@ -1,3 +1,4 @@
+import os
 import unittest
 from pymongo import IndexModel
 from bson import ObjectId
@@ -14,8 +15,8 @@ class MyTestCase(unittest.TestCase):
         with self.assertRaises(PocketMongoConfigError):
             CarC.collection.insert_one({'Model': 'Gol'})
 
-        address = 'mongodb://localhost:27027'
-        database = 'unittest'
+        address = os.getenv('MONGO_ADDRESS')
+        database = os.getenv('DATABASE')
 
         Settings.config(address, database)
 
