@@ -4,8 +4,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="pocket-mongo-bgss",
-    version="0.0.1",
+    name="pocket-mongo",
+    version="0.0.2",
     author="Bruno Gonçalves dos Santos",
     author_email="brunogoncalves.santos@gmail.com",
     description="An easy-to-use and quick setup interface for MongoDB.",
