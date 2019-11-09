@@ -41,7 +41,12 @@ class MyTestCase(unittest.TestCase):
             ]
 
         indexes = list(LogC.collection.list_indexes())
-        self. assertEqual(2, indexes.__len__())
+        self.assertEqual(2, indexes.__len__())
+
+    def test_collection_not_defined(self) -> None:
+        with self.assertRaises(PocketMongoCollectionNotDefined):
+            class NoCollection(BaseCollection):
+                pass
 
 
 if __name__ == '__main__':

@@ -1,9 +1,9 @@
-from typing import Any, List
+from typing import *
 from pymongo import MongoClient, IndexModel
 from pymongo.collection import Collection
 from pymongo.database import Database
 from bson import ObjectId
-from .exceptions import PocketMongoConfigError
+from .exceptions import PocketMongoConfigError, PocketMongoCollectionNotDefined
 from .settings import Settings
 
 __all__ = [
@@ -12,7 +12,7 @@ __all__ = [
 
 
 class Meta(type):
-    collection_name = None
+    collection_name: str = None
     indexes: List[IndexModel] = None
     db: Database
 
@@ -31,9 +31,7 @@ class Meta(type):
 
     def validate_collection(cls, args: tuple) -> None:
         if args[0] != 'colecaoBase' and not args[2].get('collection_name'):
-            raise ValueError(
-                'Class %s must define a <collection_name>' % args[2]
-            )
+            raise PocketMongoCollectionNotDefined(args[2])
 
     def create_collection(cls) -> Collection:
         cls.validate_settings()
