@@ -30,7 +30,7 @@ class MyTestCase(unittest.TestCase):
         car_id = CarC.collection.insert_one({'Model': 'BMW'})
         self.assertIsInstance(car_id.inserted_id, ObjectId)
 
-        delete_count = CarC.delete_by_id(car_id.inserted_id).deleted_count
+        delete_count = CarC.delete_by_id(car_id.inserted_id)
         self.assertEqual(delete_count, 1)
 
     def test_indexes_creation(self) -> None:
@@ -47,6 +47,25 @@ class MyTestCase(unittest.TestCase):
         with self.assertRaises(PocketMongoCollectionNotDefined):
             class NoCollection(BaseCollection):
                 pass
+
+    def test_inheritance(self) -> None:
+        class MobilePhoneC(BaseCollection):
+            collection_name = 'mobilePhone'
+
+            def __init__(self, model, *args, **kwargs):
+                self.model = model
+                super().__init__(*args, **kwargs)
+
+            def __repr__(self) -> str:
+                return f'Mobile Phone: {self.model}'
+
+        mb = MobilePhoneC('IPhone11')
+        mb.save()
+
+        docs = MobilePhoneC.objects({})
+        self.assertTrue(all([isinstance(d, MobilePhoneC) for d in docs]))
+
+        self.assertEqual(1, mb.delete())
 
 
 if __name__ == '__main__':

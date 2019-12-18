@@ -82,4 +82,34 @@ class BaseCollection(metaclass=Meta):
         if isinstance(_id, str):
             _id = ObjectId(_id)
 
-        return cls.collection.delete_one({'_id': _id})
+        return cls.collection.delete_one({'_id': _id}).deleted_count
+
+    @classmethod
+    def objects(cls, _filter: Dict = None):
+        if not _filter:
+            _filter = {}
+
+        docs = cls.collection.find(_filter)
+
+        return [cls(**doc) for doc in docs]
+
+    def __init__(self, *args, **kwargs) -> None:
+        self.id = kwargs.get('_id', None)
+
+    def delete(self) -> int:
+        return self.delete_by_id(self.id)
+
+    @property
+    def id_filtro(self) -> dict:
+        return {'_id': self.id}
+
+    def save(self) -> ObjectId:
+        doc = self.__dict__.copy()
+
+        doc.pop('id')
+        if not hasattr(self, 'id') or not self.id:
+            self.id = self.__class__.collection.insert_one(doc).inserted_id
+            return self.id
+
+        self.__class__.collection.update_one(self.id_filtro, {'$set': doc})
+        return self.id
